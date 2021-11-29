@@ -1,5 +1,5 @@
 from datetime import datetime
-from get_time_packages_project.get_time_package.get_time_module import get_time
+from get_time.get_time_package.get_time_module import get_time
 
 
 def print_time_pretty(unixtime):
