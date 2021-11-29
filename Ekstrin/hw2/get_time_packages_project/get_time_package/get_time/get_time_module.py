@@ -9,12 +9,16 @@ def get_time():
 
 
 def print_time(unixtime):
-    print(unixtime)
+    try:
+        from get_time.pretty_print_module import print_time_pretty
+        print_time_pretty(unixtime)
+    except ImportError:
+        print(unixtime)
 
 
 def main():
     unixtime = get_time()
-    print(unixtime)
+    print_time(unixtime)
 
 
 if __name__ == '__main__':
