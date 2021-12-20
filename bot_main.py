@@ -1,62 +1,74 @@
-import requests
-import json
-from PIL import Image
-import io
+import logging
 
-TOKEN = ''
-BASE_URL = f"https://api.telegram.org/bot{TOKEN}/"
-LONG_POLLING_TIMEOUT = 10
+from setup import TOKEN
+from telegram import Bot, Update
+from telegram.ext import CallbackContext, CommandHandler, Filters, \
+    MessageHandler, Updater
 
-
-def event_loop():
-    last_update_id = None
-    while True:
-        r = requests.get(BASE_URL + 'getUpdates',
-                         params={
-                             'offset': last_update_id,
-                             'timeout': LONG_POLLING_TIMEOUT
-                         })
-        response_dict = json.loads(r.text)
-        print(r.status_code)
-        print(r.text)
-        for upd in response_dict["result"]:
-            last_update_id = upd["update_id"] + 1
-            msg = upd["message"]
-            chat_id = msg["chat"]["id"]
-            if 'photo' in msg:
-                file_id = msg['photo'][2]['file_id']
-                download_photo(file_id)
-            else:
-                send_message(chat_id, 'Отправьте фото для окрашивания!')
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-def get_file_path(file_id):
-    r = requests.get(BASE_URL + 'getFile', params={'file_id': file_id})
-    if r.status_code == 200:
-        response_dict = json.loads(r.text)
-        return response_dict['result']['file_path']
+def start(update: Update, context: CallbackContext):
+    """Send a message when the command /start is issued."""
+    name = update.message.chat.first_name
+    update.message.reply_text(f"Hello {name}")
+    update.message.reply_text(
+        "Submit a black and white picture to make it in color!\n"
+        "I can only work with photos!")
 
 
-def download_photo(file_id):
-    file_path = get_file_path(file_id)
-    if file_path is not None:
-        response = requests.get(
-            f'https://api.telegram.org/file/bot{TOKEN}/{file_path}')
-        if response.status_code == 200:
-            picture = response.content
-            show_picture(picture)
+def echo(update: Update, context: CallbackContext):
+    """Echo the user message."""
+    update.message.reply_text(
+        f'I can only work with photos!\n'
+        f'Submit a black and white picture to make it in color!')
 
 
-def show_picture(picture_in_bytes):
-    image = Image.open(io.BytesIO(picture_in_bytes))
-    image.save('test.jpg')
+def error(update: Update, context: CallbackContext):
+    """Log Errors caused by Updates."""
+    logger.warning(f'Update {update} caused error {context.error}')
 
 
-def send_message(chat_id, message):
-    requests.post(BASE_URL + 'sendMessage', params={
-        "chat_id": chat_id,
-        "text": message
-    })
+def send_image():
+    # TODO
+    pass
 
 
-event_loop()
+def process_image(update: Update, context: CallbackContext):
+    file = update.message.photo[-1].get_file()
+    file.download('test.jpg')
+    update.message.reply_text("Image received")
+    # TODO image processing
+
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+
+    # on different commands - answer in Telegram
+    updater.dispatcher.add_handler(CommandHandler('start', start))
+
+    # on noncommand i.e message - echo the message on Telegram
+    updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
+
+    # log all errors
+    updater.dispatcher.add_error_handler(error)
+
+    # image processing
+    updater.dispatcher.add_handler(
+        MessageHandler(Filters.photo, process_image))
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
+
+
+if __name__ == '__main__':
+    logger.info('Start Bot')
+    main()
