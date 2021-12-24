@@ -1,6 +1,6 @@
 import logging
 
-from setup import TOKEN
+from config import Config
 from telegram import Bot, Update
 from telegram.ext import CallbackContext, CommandHandler, Filters, \
     MessageHandler, Updater
@@ -9,6 +9,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
 logger = logging.getLogger(__name__)
+conf = Config()
 
 
 def start(update: Update, context: CallbackContext):
@@ -45,7 +46,7 @@ def process_image(update: Update, context: CallbackContext):
 
 
 def main():
-    updater = Updater(TOKEN, use_context=True)
+    updater = Updater(conf.properties['token'], use_context=True)
 
     # on different commands - answer in Telegram
     updater.dispatcher.add_handler(CommandHandler('start', start))
