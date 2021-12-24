@@ -113,6 +113,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Configs
+config.json
+
+#Test image
+test.jpg
+
 # Spyder project settings
 .spyderproject
 .spyproject
