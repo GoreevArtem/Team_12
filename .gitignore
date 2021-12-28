@@ -116,7 +116,7 @@ venv.bak/
 # Configs
 config.json
 
-#Test image
+# Test image
 test.jpg
 
 # Spyder project settings
