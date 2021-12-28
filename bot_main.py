@@ -1,15 +1,21 @@
 import logging
 
-from config import Config
-from telegram import Bot, Update
+from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, Filters, \
     MessageHandler, Updater
+
+from config_bot import Config
+from utils import Utils
+from implementations.SenderUpdateImplementation import \
+    SenderUpdateImplementation
+
+MAX_FILE_SIZE = 100000000000
+conf = Config()
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
 logger = logging.getLogger(__name__)
-conf = Config()
 
 
 def start(update: Update, context: CallbackContext):
@@ -33,16 +39,10 @@ def error(update: Update, context: CallbackContext):
     logger.warning(f'Update {update} caused error {context.error}')
 
 
-def send_image():
-    # TODO
-    pass
-
-
 def process_image(update: Update, context: CallbackContext):
     file = update.message.photo[-1].get_file()
-    file.download('test.jpg')
-    update.message.reply_text("Image received")
-    # TODO image processing
+    Utils.process_image(file, update.message.chat_id,
+                        SenderUpdateImplementation(update))
 
 
 def main():
