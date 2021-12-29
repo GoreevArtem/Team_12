@@ -57,6 +57,7 @@ def process_image(update: Update, context: CallbackContext):
         return
     with open(file_path, "rb") as file_stream:
         update.message.reply_photo(file_stream)
+    Utils.clean_all_dirs()
 
 
 def main():
