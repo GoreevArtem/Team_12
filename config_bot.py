@@ -1,3 +1,5 @@
+"""Configs for neural network"""
+
 import json
 from pathlib import Path
 
@@ -39,8 +41,9 @@ class Config:
             with open(self._file_path, encoding="utf-8") as conf:
                 self._json_cfg = json.load(conf)
         except Exception as exc:
-            raise ConfigException("Failed to load configuration from:",
-                                  self._file_path) from exc
+            raise ConfigException(
+                "Failed to load configuration from:", self._file_path
+            ) from exc
 
     @property
     def properties(self):
