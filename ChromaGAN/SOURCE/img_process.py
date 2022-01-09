@@ -50,14 +50,15 @@ class ImgProcess:
         test_data = data.DATA(config.TEST_DIR)
         assert (
             config.BATCH_SIZE <= test_data.size
-        ), "The batch size should be smaller or equal to the number of testing images --> modify it in config_bot.py"
+        ), ("The batch size should be smaller or equal to "
+            "the number of testing images --> modify it in config_bot.py")
         total_batch = int(test_data.size / config.BATCH_SIZE)
         for _ in range(total_batch):
             # batchX, batchY,  filelist  = test_data.generate_batch()
             try:
                 (
                     batch_x,
-                    batch_y,
+                    _,
                     filelist,
                     original,
                     labimg_orit_list,
@@ -68,7 +69,7 @@ class ImgProcess:
             pred_y, _ = self.colorization_model.predict(np.tile(batch_x, [1, 1, 1, 3]))
             for i in range(config.BATCH_SIZE):
                 original_result = original[i]
-                height, width, channels = original_result.shape
+                height, width, _ = original_result.shape
                 predicted_ab = cv2.resize(deprocess(pred_y[i]), (width, height))
                 labimg_ori = np.expand_dims(labimg_orit_list[i], axis=2)
                 pred_result = reconstruct_no(deprocess(labimg_ori), predicted_ab)

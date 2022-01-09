@@ -2,7 +2,7 @@
 
 import logging
 
-from telegram import Update
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import (
     CallbackContext,
     CommandHandler,
@@ -26,11 +26,14 @@ logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
+
+    buttons = [[KeyboardButton("/help")]]
     name = update.message.chat.first_name
-    update.message.reply_text(f"Hello {name}")
+    update.message.reply_text(f"Hello, {name}!")
     update.message.reply_text(
         "Submit a black and white picture to make it in color!\n"
-        "I can only work with photos!"
+        "I can only work with photos!",
+        reply_markup=ReplyKeyboardMarkup(buttons, resize_keyboard=True),
     )
 
 
