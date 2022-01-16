@@ -50,9 +50,8 @@ def error(update: Update, context: CallbackContext):
     logger.warning(f"Update {update} caused error {context.error}")
 
 
-def process_image(update: Update, context: CallbackContext):
+def process_image(update, file):
     """Image processing with neural network"""
-    file = update.message.photo[-1].get_file()
     file_path = Utils.process_image(
         file, update.message.chat_id, SenderUpdateImplementation(update)
     )
@@ -61,6 +60,22 @@ def process_image(update: Update, context: CallbackContext):
     with open(file_path, "rb") as file_stream:
         update.message.reply_photo(file_stream)
     Utils.clean_all_dirs()
+
+
+def process_normal_image(update: Update, context: CallbackContext):
+    """Simple photo processing with neural network"""
+    file = update.message.photo[-1].get_file()
+    process_image(update, file)
+
+
+def process_doc_image(update: Update, context: CallbackContext):
+    """Document photo processing with neural network"""
+    doc_type = str(update.message["document"].mime_type)
+    if doc_type.startswith("image"):
+        file = context.bot.get_file(update.message.document)
+        process_image(update, file)
+    else:
+        update.message.reply_text("Sorry, I can work only with photos!")
 
 
 def main():
@@ -77,7 +92,10 @@ def main():
     updater.dispatcher.add_error_handler(error)
 
     # image processing
-    updater.dispatcher.add_handler(MessageHandler(Filters.photo, process_image))
+    updater.dispatcher.add_handler(MessageHandler(Filters.photo, process_normal_image))
+
+    # image doc processing
+    updater.dispatcher.add_handler(MessageHandler(Filters.document, process_doc_image))
 
     # Start the Bot
     updater.start_polling()
