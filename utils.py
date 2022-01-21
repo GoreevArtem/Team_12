@@ -1,3 +1,4 @@
+"""Module with utils"""
 import os
 from datetime import datetime
 
@@ -48,4 +49,5 @@ class Utils:
     def clean_all_dirs():
         """Cleans dirs with black-and-white and reconstructed photos"""
         Utils.clear_dir(config_model.OUT_DIR)
-        Utils.clear_dir(os.path.join(config_model.DATA_DIR, config_model.TEST_DIR))
+        Utils.clear_dir(
+            os.path.join(config_model.DATA_DIR, config_model.TEST_DIR))
