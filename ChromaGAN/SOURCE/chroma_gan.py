@@ -19,7 +19,7 @@ from tensorflow.python.keras.optimizers import adam_v2
 
 import config_model as config
 import data_сlass as data
-from img_process import deprocess, reconstruct, reconstruct_no
+from img_process import deprocess, reconstruct
 
 GRADIENT_PENALTY_WEIGHT = 10
 
@@ -295,7 +295,8 @@ class MODEL:
 
                 if batch % 1000 == 0:
                     print(
-                        f"[Epoch {epoch}] [Batch {batch}] [generator loss: {g_loss[0]}] [discriminator loss: {d_loss[0]}]"
+                        f"[Epoch {epoch}] [Batch {batch}]"
+                        f" [generator loss: {g_loss[0]}] [discriminator loss: {d_loss[0]}]"
                     )
             # save models after each epoch
             save_path = os.path.join(
@@ -330,7 +331,7 @@ class MODEL:
                 height, width, _ = original_result.shape
                 predicted_ab = cv2.resize(deprocess(pred_ab[i]), (width, height))
                 labimg_ori = np.expand_dims(labimg_orit_list[i], axis=2)
-                predResult = reconstruct(
+                reconstruct(
                     deprocess(labimg_ori),
                     predicted_ab,
                     "epoch" + str(epoch) + "_" + filelist[i][:-5],
