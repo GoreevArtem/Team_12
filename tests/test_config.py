@@ -13,12 +13,12 @@ class MyTestCase(unittest.TestCase):
 
     def set_up_keys_as_str(self, d: dict):
         """Make keys to strings and nested dicts too"""
-        l = []
+        keys_list = []
         for key in d:
             if not isinstance(key, str) or isinstance(d[key], dict):
-                l.append(key)
+                keys_list.append(key)
 
-        for key in l:
+        for key in keys_list:
             if isinstance(d[key], dict):
                 d[key] = self.set_up_keys_as_str(d[key])
             else:
