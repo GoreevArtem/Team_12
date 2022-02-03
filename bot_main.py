@@ -59,6 +59,8 @@ def process_image(update, file):
         return
     with open(file_path, "rb") as file_stream:
         update.message.reply_photo(file_stream)
+    url = Utils.save_image(file_path)
+    print(url)
     Utils.clean_all_dirs()
 
 

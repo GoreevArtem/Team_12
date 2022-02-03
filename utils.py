@@ -1,13 +1,18 @@
 """Module with utils"""
 import os
 from datetime import datetime
+import requests
 
 from ChromaGAN.SOURCE import config_model
 from ChromaGAN.SOURCE.img_process import ImgProcess
 from interfaces.sender_interface import SenderInterface
+from config_bot import Config
 
 MAX_FILE_SIZE = 100000000000
+UPLOAD_POST = "https://api.imgbb.com/1/upload"
+
 img_process = ImgProcess()
+config = Config()
 
 
 class Utils:
@@ -51,3 +56,12 @@ class Utils:
         Utils.clear_dir(config_model.OUT_DIR)
         Utils.clear_dir(
             os.path.join(config_model.DATA_DIR, config_model.TEST_DIR))
+
+    @staticmethod
+    def save_image(file_path):
+        with open(file_path, 'rb') as image:
+            params = {'key': config.properties['key_image_api']}
+            files = {'image': image}
+            r = requests.post(UPLOAD_POST, params=params, files=files)
+            json_dict = r.json()
+            return json_dict['data']['url']
