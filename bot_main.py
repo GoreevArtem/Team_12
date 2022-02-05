@@ -14,35 +14,62 @@ from telegram.ext import (
 from config_bot import Config
 from utils import Utils
 from implementations.sender_update_implementation import SenderUpdateImplementation
+from db_helper import DB_Helper
 
-MAX_FILE_SIZE = 100000000000
 conf = Config()
+db_helper = DB_Helper()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+MAX_FILE_SIZE = 100000000000
+COMMAND_CLEAN = "Clean history"
+COMMAND_LAST = "Last colored photo"
+COMMAND_HISTORY = "All colored photos"
+
 
 def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
 
-    buttons = [[KeyboardButton("/help")]]
+    buttons = [
+        [
+            KeyboardButton("/help"),
+            KeyboardButton(COMMAND_HISTORY),
+            KeyboardButton(COMMAND_LAST),
+            KeyboardButton(COMMAND_CLEAN),
+        ]
+    ]
     name = update.message.chat.first_name
     update.message.reply_text(f"Hello, {name}!")
     update.message.reply_text(
         "Submit a black and white picture to make it in color!\n"
         "I can only work with photos!",
-        reply_markup=ReplyKeyboardMarkup(buttons, resize_keyboard=True),
+        reply_markup=ReplyKeyboardMarkup(buttons),
     )
 
 
 def echo(update: Update, context: CallbackContext):
     """Echo the user message."""
-    update.message.reply_text(
-        "I can only work with photos!\n"
-        "Submit a black and white picture to make it in color!"
-    )
+    text = update.message.text
+    chat_id = update.message.chat_id
+    if text == COMMAND_HISTORY:
+        urls = db_helper.get_all_urls(chat_id)
+        reply = "\n".join(urls) if urls is not None else "Your history is clean!"
+        update.message.reply_text(reply)
+    elif text == COMMAND_LAST:
+        url = db_helper.get_last_url(chat_id)
+        reply = url if url is not None else "Your history is clean!"
+        update.message.reply_text(reply)
+    elif text == COMMAND_CLEAN:
+        db_helper.clean_history(chat_id)
+        update.message.reply_text("Done!")
+    else:
+        update.message.reply_text(
+            "I can only work with photos!\n"
+            "Submit a black and white picture to make it in color!"
+        )
 
 
 def error(update: Update, context: CallbackContext):
@@ -60,7 +87,7 @@ def process_image(update, file):
     with open(file_path, "rb") as file_stream:
         update.message.reply_photo(file_stream)
     url = Utils.save_image(file_path)
-    print(url)
+    db_helper.add_or_update_url(update.message.chat_id, url)
     Utils.clean_all_dirs()
 
 
