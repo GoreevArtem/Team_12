@@ -29,24 +29,25 @@ COMMAND_CLEAN = "Clean history"
 COMMAND_LAST = "Last colored photo"
 COMMAND_HISTORY = "All colored photos"
 
+buttons = [
+    [
+        KeyboardButton("/help"),
+        KeyboardButton(COMMAND_HISTORY),
+        KeyboardButton(COMMAND_LAST),
+        KeyboardButton(COMMAND_CLEAN),
+    ]
+]
+reply_keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+
 
 def start(update: Update, context: CallbackContext):
     """Send a message when the command /start is issued."""
-
-    buttons = [
-        [
-            KeyboardButton("/help"),
-            KeyboardButton(COMMAND_HISTORY),
-            KeyboardButton(COMMAND_LAST),
-            KeyboardButton(COMMAND_CLEAN),
-        ]
-    ]
     name = update.message.chat.first_name
     update.message.reply_text(f"Hello, {name}!")
     update.message.reply_text(
         "Submit a black and white picture to make it in color!\n"
         "I can only work with photos!",
-        reply_markup=ReplyKeyboardMarkup(buttons),
+        reply_markup=reply_keyboard,
     )
 
 
@@ -68,7 +69,8 @@ def echo(update: Update, context: CallbackContext):
     else:
         update.message.reply_text(
             "I can only work with photos!\n"
-            "Submit a black and white picture to make it in color!"
+            "Submit a black and white picture to make it in color!",
+            reply_markup=reply_keyboard,
         )
 
 
@@ -85,7 +87,7 @@ def process_image(update, file):
     if not file_path:
         return
     with open(file_path, "rb") as file_stream:
-        update.message.reply_photo(file_stream)
+        update.message.reply_photo(file_stream, reply_markup=reply_keyboard)
     url = Utils.save_image(file_path)
     db_helper.add_or_update_url(update.message.chat_id, url)
     Utils.clean_all_dirs()
