@@ -15,6 +15,7 @@ from config_bot import Config
 from utils import Utils
 from implementations.sender_update_implementation import SenderUpdateImplementation
 from db_helper import DB_Helper
+from ping import get_statistics
 
 conf = Config()
 db_helper = DB_Helper()
@@ -32,6 +33,7 @@ COMMAND_HISTORY = "All colored photos"
 buttons = [
     [
         KeyboardButton("/help"),
+        KeyboardButton("/ping_yandex"),
         KeyboardButton(COMMAND_HISTORY),
         KeyboardButton(COMMAND_LAST),
         KeyboardButton(COMMAND_CLEAN),
@@ -49,6 +51,11 @@ def start(update: Update, context: CallbackContext):
         "I can only work with photos!",
         reply_markup=reply_keyboard,
     )
+
+
+def ping_yandex(update: Update, context: CallbackContext):
+    """Ping yandex and return statistics"""
+    get_statistics("yandex.ru", 10, SenderUpdateImplementation(update))
 
 
 def echo(update: Update, context: CallbackContext):
@@ -115,6 +122,9 @@ def main():
 
     # on different commands - answer in Telegram
     updater.dispatcher.add_handler(CommandHandler("start", start))
+
+    # ping yandex and get statistics
+    updater.dispatcher.add_handler(CommandHandler("ping_yandex", ping_yandex))
 
     # on noncommand i.e message - echo the message on Telegram
     updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
