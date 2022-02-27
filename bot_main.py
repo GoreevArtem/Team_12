@@ -1,21 +1,18 @@
 """Module with bot logic"""
-
 import logging
+import os
+from datetime import datetime
 
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
-from telegram.ext import (
-    CallbackContext,
-    CommandHandler,
-    Filters,
-    MessageHandler,
-    Updater,
-)
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher.filters import CommandStart, Command
+from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
+from ChromaGAN.SOURCE import config_model
 from config_bot import Config
-from utils import Utils
-from implementations.sender_update_implementation import SenderUpdateImplementation
 from db_helper import DB_Helper
+from implementations.sender_message_implementation import SenderMessageImplementation
 from ping import get_statistics
+from utils import Utils
 
 conf = Config()
 db_helper = DB_Helper()
@@ -42,109 +39,119 @@ buttons = [
 reply_keyboard = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
 
-def start(update: Update, context: CallbackContext):
+async def start(message: types.Message):
     """Send a message when the command /start is issued."""
-    name = update.message.chat.first_name
-    update.message.reply_text(f"Hello, {name}!")
-    update.message.reply_text(
+    name = message.chat.first_name
+    await message.reply(f"Hello, {name}!")
+    await message.reply(
         "Submit a black and white picture to make it in color!\n"
         "I can only work with photos!",
         reply_markup=reply_keyboard,
     )
 
 
-def ping_yandex(update: Update, context: CallbackContext):
+async def ping_yandex(message: types.Message):
     """Ping yandex and return statistics"""
-    get_statistics("yandex.ru", 10, SenderUpdateImplementation(update))
+    await get_statistics("yandex.ru", 10, SenderMessageImplementation(message))
 
 
-def echo(update: Update, context: CallbackContext):
+async def echo(message: types.Message):
     """Echo the user message."""
-    text = update.message.text
-    chat_id = update.message.chat_id
+    text = message.text
+    chat_id = message.chat.id
     if text == COMMAND_HISTORY:
         urls = db_helper.get_all_urls(chat_id)
-        reply = "\n".join(urls) if urls is not None else "Your history is clean!"
-        update.message.reply_text(reply)
+        repl = "\n".join(urls) if urls is not None else "Your history is clean!"
+        await message.reply(repl)
     elif text == COMMAND_LAST:
         url = db_helper.get_last_url(chat_id)
-        reply = url if url is not None else "Your history is clean!"
-        update.message.reply_text(reply)
+        repl = url if url is not None else "Your history is clean!"
+        await message.reply(repl)
     elif text == COMMAND_CLEAN:
         db_helper.clean_history(chat_id)
-        update.message.reply_text("Done!")
+        await message.reply("Done!")
     else:
-        update.message.reply_text(
+        await message.reply(
             "I can only work with photos!\n"
             "Submit a black and white picture to make it in color!",
             reply_markup=reply_keyboard,
         )
 
 
-def error(update: Update, context: CallbackContext):
+async def error(update, exception):
     """Log Errors caused by Updates."""
-    logger.warning(f"Update {update} caused error {context.error}")
+    logger.warning(f"Update {update} caused error {exception}")
 
 
-def process_image(update, file):
+async def download_file(message: types.Message, file):
+    file_name = f"{message.chat.id}_{datetime.now().timestamp()}"
+    file_path = (
+        f"{os.path.join(config_model.DATA_DIR, config_model.TEST_DIR)}/{file_name}.jpg"
+    )
+    await message.bot.download_file(file.file_path, file_path)
+    return file_name, file.file_size
+
+
+async def process_image(message: types.Message, file):
     """Image processing with neural network"""
-    file_path = Utils.process_image(
-        file, update.message.chat_id, SenderUpdateImplementation(update)
+    file_name, file_size = await download_file(message, file)
+    file_path = await Utils.process_image(
+        file_name, file_size, message.chat.id, SenderMessageImplementation(message)
     )
     if not file_path:
         return
     with open(file_path, "rb") as file_stream:
-        update.message.reply_photo(file_stream, reply_markup=reply_keyboard)
+        await message.reply_photo(file_stream, reply_markup=reply_keyboard)
     url = Utils.save_image(file_path)
-    db_helper.add_or_update_url(update.message.chat_id, url)
+    db_helper.add_or_update_url(message.chat.id, url)
     Utils.clean_all_dirs()
 
 
-def process_normal_image(update: Update, context: CallbackContext):
+async def process_normal_image(message: types.Message):
     """Simple photo processing with neural network"""
-    file = update.message.photo[-1].get_file()
-    process_image(update, file)
+    file = await message.photo[-1].get_file()
+    await process_image(message, file)
 
 
-def process_doc_image(update: Update, context: CallbackContext):
+async def process_doc_image(message: types.Message):
     """Document photo processing with neural network"""
-    doc_type = str(update.message["document"].mime_type)
+    doc_type = str(message["document"].mime_type)
     if doc_type.startswith("image"):
-        file = context.bot.get_file(update.message.document)
-        process_image(update, file)
+        file = await message.bot.get_file(message.document.file_id)
+        await process_image(message, file)
     else:
-        update.message.reply_text("Sorry, I can work only with photos!")
+        await message.reply("Sorry, I can work only with photos!")
 
 
 def main():
     """Start bot and config it"""
-    updater = Updater(conf.properties["token"], use_context=True)
+    bot = Bot(token=conf.properties["token"])
+    dispatcher = Dispatcher(bot)
 
     # on different commands - answer in Telegram
-    updater.dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.register_message_handler(start, CommandStart())
 
     # ping yandex and get statistics
-    updater.dispatcher.add_handler(CommandHandler("ping_yandex", ping_yandex))
+    dispatcher.register_message_handler(ping_yandex, Command(("ping_yandex",)))
 
     # on noncommand i.e message - echo the message on Telegram
-    updater.dispatcher.add_handler(MessageHandler(Filters.text, echo))
+    dispatcher.register_message_handler(echo)
 
     # log all errors
-    updater.dispatcher.add_error_handler(error)
+    dispatcher.register_errors_handler(error)
 
     # image processing
-    updater.dispatcher.add_handler(MessageHandler(Filters.photo, process_normal_image))
+    dispatcher.register_message_handler(
+        process_normal_image, content_types=types.ContentTypes.PHOTO
+    )
 
     # image doc processing
-    updater.dispatcher.add_handler(MessageHandler(Filters.document, process_doc_image))
+    dispatcher.register_message_handler(
+        process_doc_image, content_types=types.ContentTypes.DOCUMENT
+    )
 
     # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
+    executor.start_polling(dispatcher)
 
 
 if __name__ == "__main__":
