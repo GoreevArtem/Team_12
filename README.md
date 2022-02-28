@@ -16,7 +16,7 @@ Telegram bot project for coloring black and white photos with the ability to sav
 
 ## Getting Started
 
-## System requirements
+### System requirements
 Linux / Windows
 
 python 3.7 and higher
