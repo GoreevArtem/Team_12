@@ -26,8 +26,7 @@ def reconstruct(batch_x, predicted_y, file_list):
     save_results_path = os.path.join(config.OUT_DIR, config.TEST_NAME)
     if not os.path.exists(save_results_path):
         os.makedirs(save_results_path)
-    save_path = os.path.join(save_results_path,
-                             file_list + "_reconstructed.jpg")
+    save_path = os.path.join(save_results_path, file_list + "_reconstructed.jpg")
     cv2.imwrite(save_path, result)
     return result
 
@@ -46,6 +45,7 @@ class ImgProcess:
         self.colorization_model = None
 
     def start_model(self):
+        """Lazy model start"""
         save_path = os.path.join(config.MODEL_DIR, config.PRETRAINED)
         self.colorization_model = load_model(save_path)
 
@@ -56,10 +56,10 @@ class ImgProcess:
             self.start_model()
 
         test_data = data.DATA(config.TEST_DIR)
-        assert (
-                config.BATCH_SIZE <= test_data.size
-        ), ("The batch size should be smaller or equal to "
-            "the number of testing images --> modify it in config_bot.py")
+        assert config.BATCH_SIZE <= test_data.size, (
+            "The batch size should be smaller or equal to "
+            "the number of testing images --> modify it in config_bot.py"
+        )
         total_batch = int(test_data.size / config.BATCH_SIZE)
         for _ in range(total_batch):
             # batchX, batchY,  filelist  = test_data.generate_batch()
@@ -74,16 +74,13 @@ class ImgProcess:
             except Exception as e:
                 sys.stderr.write(f"Failed to generate batch: {e}\n")
                 continue
-            pred_y, _ = self.colorization_model.predict(
-                np.tile(batch_x, [1, 1, 1, 3]))
+            pred_y, _ = self.colorization_model.predict(np.tile(batch_x, [1, 1, 1, 3]))
             for i in range(config.BATCH_SIZE):
                 original_result = original[i]
                 height, width, _ = original_result.shape
-                predicted_ab = cv2.resize(deprocess(pred_y[i]),
-                                          (width, height))
+                predicted_ab = cv2.resize(deprocess(pred_y[i]), (width, height))
                 labimg_ori = np.expand_dims(labimg_orit_list[i], axis=2)
-                pred_result = reconstruct_no(deprocess(labimg_ori),
-                                             predicted_ab)
+                pred_result = reconstruct_no(deprocess(labimg_ori), predicted_ab)
                 save_path = os.path.join(config.OUT_DIR, filelist[i])
                 if concatenate:
                     result_img = np.concatenate((pred_result, original_result))

@@ -11,25 +11,25 @@ class MyTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.config_file = "../config.json"
 
-    def set_up_keys_as_str(self, d: dict):
+    def set_up_keys_as_str(self, test_dict: dict):
         """Make keys to strings and nested dicts too"""
         keys_list = []
-        for key in d:
-            if not isinstance(key, str) or isinstance(d[key], dict):
+        for key in test_dict:
+            if not isinstance(key, str) or isinstance(test_dict[key], dict):
                 keys_list.append(key)
 
         for key in keys_list:
-            if isinstance(d[key], dict):
-                d[key] = self.set_up_keys_as_str(d[key])
+            if isinstance(test_dict[key], dict):
+                test_dict[key] = self.set_up_keys_as_str(test_dict[key])
             else:
-                d[str(key)] = d[key]
-                del d[key]
-        return d
+                test_dict[str(key)] = test_dict[key]
+                del test_dict[key]
+        return test_dict
 
-    def config_dict(self, d: dict):
+    def config_dict(self, test_dict: dict):
         """Test for a single dict"""
-        data = self.set_up_keys_as_str(d)
-        with open(self.config_file, "w+") as file:
+        data = self.set_up_keys_as_str(test_dict)
+        with open(self.config_file, "w+", encoding="utf-8") as file:
             json.dump(data, file)
         config = Config()
         self.assertEqual(config.properties, data)
