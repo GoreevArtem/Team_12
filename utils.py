@@ -29,7 +29,7 @@ class Utils:
             os.remove(filepath)
 
     @staticmethod
-    async def process_image(file_name, file_size, chat_id, sender: SenderInterface):
+    async def process_image(file_name, file_size, sender: SenderInterface):
         """Process an image and sent to user"""
         if file_size > MAX_FILE_SIZE:
             await sender.send_message("Sorry, your photo is too big!")
@@ -48,9 +48,10 @@ class Utils:
 
     @staticmethod
     def save_image(file_path):
+        """Saves image on image hosting"""
         with open(file_path, "rb") as image:
             params = {"key": config.properties["key_image_api"]}
             files = {"image": image}
-            r = requests.post(UPLOAD_POST, params=params, files=files)
-            json_dict = r.json()
+            response = requests.post(UPLOAD_POST, params=params, files=files)
+            json_dict = response.json()
             return json_dict["data"]["url"]

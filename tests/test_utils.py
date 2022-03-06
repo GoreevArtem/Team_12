@@ -1,3 +1,5 @@
+"""Test for class Utils"""
+
 import unittest
 import os
 from utils import Utils

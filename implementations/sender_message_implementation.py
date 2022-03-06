@@ -1,9 +1,11 @@
+"""Sender aiogram interface implementation for bot"""
+
 from aiogram import types
 from interfaces.sender_interface import SenderInterface
 
 
 class SenderMessageImplementation(SenderInterface):
-    """Sender interface implementation for bot"""
+    """Sender aiogram interface implementation for bot"""
 
     def __init__(self, message: types.Message):
         self.message = message
