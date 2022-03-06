@@ -60,18 +60,18 @@ async def echo(message: types.Message):
     text = message.text
     chat_id = message.chat.id
     if text == COMMAND_HISTORY:
-        urls = db_helper.get_all_urls(chat_id)
+        urls = await db_helper.get_all_urls(chat_id)
         repl = "\n".join(urls) if urls is not None else "Your history is clean!"
-        await message.reply(repl)
+        await message.answer(repl)
     elif text == COMMAND_LAST:
-        url = db_helper.get_last_url(chat_id)
+        url = await db_helper.get_last_url(chat_id)
         repl = url if url is not None else "Your history is clean!"
-        await message.reply(repl)
+        await message.answer(repl)
     elif text == COMMAND_CLEAN:
-        db_helper.clean_history(chat_id)
-        await message.reply("Done!")
+        await db_helper.clean_history(chat_id)
+        await message.answer("Done!")
     else:
-        await message.reply(
+        await message.answer(
             "I can only work with photos!\n"
             "Submit a black and white picture to make it in color!",
             reply_markup=reply_keyboard,
@@ -84,6 +84,7 @@ async def error(update, exception):
 
 
 async def download_file(message: types.Message, file):
+    """Download file from telegram"""
     file_name = f"{message.chat.id}_{datetime.now().timestamp()}"
     file_path = (
         f"{os.path.join(config_model.DATA_DIR, config_model.TEST_DIR)}/{file_name}.jpg"
@@ -96,14 +97,14 @@ async def process_image(message: types.Message, file):
     """Image processing with neural network"""
     file_name, file_size = await download_file(message, file)
     file_path = await Utils.process_image(
-        file_name, file_size, message.chat.id, SenderMessageImplementation(message)
+        file_name, file_size, SenderMessageImplementation(message)
     )
     if not file_path:
         return
     with open(file_path, "rb") as file_stream:
         await message.reply_photo(file_stream, reply_markup=reply_keyboard)
     url = Utils.save_image(file_path)
-    db_helper.add_or_update_url(message.chat.id, url)
+    await db_helper.add_or_update_url(message.chat.id, url)
     Utils.clean_all_dirs()
 
 
