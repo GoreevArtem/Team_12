@@ -103,7 +103,7 @@ async def process_image(message: types.Message, file):
         return
     with open(file_path, "rb") as file_stream:
         await message.reply_photo(file_stream, reply_markup=reply_keyboard)
-    url = Utils.save_image(file_path)
+    url = await Utils.save_image(file_path)
     await db_helper.add_or_update_url(message.chat.id, url)
     Utils.clean_all_dirs()
 

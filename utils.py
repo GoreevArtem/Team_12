@@ -1,7 +1,7 @@
 """Module with utils"""
 import os
 
-import requests
+import aiohttp
 
 from ChromaGAN.SOURCE import config_model
 from ChromaGAN.SOURCE.img_process import ImgProcess
@@ -47,11 +47,13 @@ class Utils:
         Utils.clear_dir(os.path.join(config_model.DATA_DIR, config_model.TEST_DIR))
 
     @staticmethod
-    def save_image(file_path):
+    async def save_image(file_path):
         """Saves image on image hosting"""
         with open(file_path, "rb") as image:
-            params = {"key": config.properties["key_image_api"]}
-            files = {"image": image}
-            response = requests.post(UPLOAD_POST, params=params, files=files)
-            json_dict = response.json()
-            return json_dict["data"]["url"]
+            async with aiohttp.ClientSession() as session:
+                params = {"key": config.properties["key_image_api"]}
+                async with session.post(
+                    UPLOAD_POST, params=params, data={"image": image}
+                ) as response:
+                    json_dict = await response.json()
+                    return json_dict["data"]["url"]
