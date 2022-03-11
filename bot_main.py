@@ -8,11 +8,11 @@ from aiogram.dispatcher.filters import CommandStart, Command
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 from ChromaGAN.SOURCE import config_model
-from config_bot import Config
-from db_helper import DB_Helper
+from conf.config_bot import Config
+from extra.db_helper import DB_Helper
 from implementations.sender_message_implementation import SenderMessageImplementation
-from ping import get_statistics
-from utils import Utils
+from extra.ping import get_statistics
+from extra.utils import Utils
 
 conf = Config()
 db_helper = DB_Helper()
@@ -103,7 +103,7 @@ async def process_image(message: types.Message, file):
         return
     with open(file_path, "rb") as file_stream:
         await message.reply_photo(file_stream, reply_markup=reply_keyboard)
-    url = Utils.save_image(file_path)
+    url = await Utils.save_image(file_path)
     await db_helper.add_or_update_url(message.chat.id, url)
     Utils.clean_all_dirs()
 

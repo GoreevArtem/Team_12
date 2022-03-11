@@ -2,7 +2,7 @@
 
 import unittest
 import os
-from utils import Utils
+from extra.utils import Utils
 
 
 class TestUtils(unittest.TestCase):

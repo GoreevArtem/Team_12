@@ -2,14 +2,14 @@
 
 import unittest
 import json
-from config_bot import Config
+from conf.config_bot import Config
 
 
 class MyTestCase(unittest.TestCase):
     """Class for testing configs"""
 
     def setUp(self) -> None:
-        self.config_file = "../config.json"
+        self.config_file = "../conf/config.json"
 
     def set_up_keys_as_str(self, test_dict: dict):
         """Make keys to strings and nested dicts too"""
