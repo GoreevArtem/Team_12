@@ -114,7 +114,7 @@ env.bak/
 venv.bak/
 
 # Configs
-config.json
+conf/config.json
 
 # Test image
 test.jpg

@@ -8,11 +8,11 @@ from aiogram.dispatcher.filters import CommandStart, Command
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
 from ChromaGAN.SOURCE import config_model
-from config_bot import Config
-from db_helper import DB_Helper
+from conf.config_bot import Config
+from extra.db_helper import DB_Helper
 from implementations.sender_message_implementation import SenderMessageImplementation
-from ping import get_statistics
-from utils import Utils
+from extra.ping import get_statistics
+from extra.utils import Utils
 
 conf = Config()
 db_helper = DB_Helper()

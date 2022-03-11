@@ -5,7 +5,7 @@ import aiohttp
 
 from ChromaGAN.SOURCE import config_model
 from ChromaGAN.SOURCE.img_process import ImgProcess
-from config_bot import Config
+from conf.config_bot import Config
 from interfaces.sender_interface import SenderInterface
 
 MAX_FILE_SIZE = 100000000000
