@@ -1,6 +1,6 @@
 <div align="center">
 
-# Bot for colonizing photos (Team 12)
+# Bot for colorizing photos (Team 12)
 
 ![Python](https://img.shields.io/badge/-Python-000000?style=for-the-badge&logo=Python&logoColor=39E830) ![Tensorflow](https://img.shields.io/badge/-Tensorflow-000000?style=for-the-badge&logo=Tensorflow&logoColor=DF3C34) ![Keras](https://img.shields.io/badge/-Keras-000000?style=for-the-badge&logo=Keras&logoColor=fb031f) ![MongoDB](https://img.shields.io/badge/-MongoDB-000000?style=for-the-badge&logo=MongoDB&logoColor=52ff6a) ![Docker](https://img.shields.io/badge/-Docker-000000?style=for-the-badge&logo=Docker&logoColor=1b8dff)
 
@@ -61,4 +61,4 @@ You can colorize arbitrary grayscale images using a pre-packaged Docker image fr
 ---
 
 ## Resources
-* [coloring photos a trained model](https://github.com/pvitoria/ChromaGAN)
+- [coloring photos a trained model](https://github.com/pvitoria/ChromaGAN)
